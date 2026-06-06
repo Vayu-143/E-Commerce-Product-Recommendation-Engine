@@ -1,0 +1,10 @@
+E-COMMERCE RECOMMENDATION REPORT
+==================================================
+
+User: Rahul
+
+1. USB Hub 63 (Score:64.4)
+2. Router 27 (Score:63.7)
+3. Headphones 4 (Score:63.3)
+4. Headphones 31 (Score:61.9)
+5. Power Bank 19 (Score:61.7)

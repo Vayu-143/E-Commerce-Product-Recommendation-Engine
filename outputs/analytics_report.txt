@@ -1,0 +1,8 @@
+ANALYTICS REPORT
+========================================
+
+Electronics: 11
+Sports: 16
+Accessories: 31
+Books: 19
+Fashion: 23

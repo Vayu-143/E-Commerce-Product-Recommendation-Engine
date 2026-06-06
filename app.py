@@ -1,34 +1,28 @@
+# app.py
+
+import os
 import pandas as pd
+import plotly.express as px
 import streamlit as st
 
 from src.storage.data_storage import DataStorage
+from src.services.recommendation_service import RecommendationService
+from src.services.analytics_service import AnalyticsService
+from src.services.report_service import ReportService
 
-from src.services.recommendation_service import (
-    RecommendationService
-)
 
-from src.services.analytics_service import (
-    AnalyticsService
-)
-
-from src.services.report_service import (
-    ReportService
-)
-
-# -----------------------------------
-# Page Config
-# -----------------------------------
-
+# --------------------------------------------------
+# PAGE CONFIG
+# --------------------------------------------------
 st.set_page_config(
-    page_title="E-Commerce Recommendation Engine",
+    page_title="E-Commerce Product Recommendation Engine",
     page_icon="🛒",
     layout="wide"
 )
 
-# -----------------------------------
-# Load Services
-# -----------------------------------
-
+# --------------------------------------------------
+# LOAD SERVICES
+# --------------------------------------------------
 storage = DataStorage()
 
 recommendation_engine = (
@@ -39,10 +33,9 @@ analytics_engine = (
     AnalyticsService(storage)
 )
 
-# -----------------------------------
-# Sidebar
-# -----------------------------------
-
+# --------------------------------------------------
+# SIDEBAR
+# --------------------------------------------------
 st.sidebar.title(
     "🛒 Recommendation Engine"
 )
@@ -59,101 +52,176 @@ menu = st.sidebar.radio(
     ]
 )
 
-# -----------------------------------
-# Dashboard
-# -----------------------------------
-
+# --------------------------------------------------
+# DASHBOARD
+# --------------------------------------------------
 if menu == "Dashboard":
 
     st.title(
-        "E-Commerce Product Recommendation Engine"
+        "🛒 E-Commerce Product Recommendation Engine"
     )
 
     st.markdown(
         """
-        Industry-Level Recommendation System
+        Industry-Level Recommendation System using:
 
-        Features:
-        - Personalized Recommendations
+        - Hash Maps
+        - Heap Ranking
         - Similarity Scoring
         - Analytics Dashboard
-        - Report Generation
-        - Heap-Based Ranking
+        - Streamlit
         """
     )
 
-    col1, col2 = st.columns(2)
+    products = storage.get_all_products()
+    users = storage.get_all_users()
 
-    with col1:
+    total_products = len(products)
+    total_users = len(users)
 
-        st.metric(
-            "Products",
-            len(
-                storage.get_all_products()
-            )
+    avg_rating = round(
+        sum(
+            p.rating
+            for p in products
+        ) / total_products,
+        2
+    )
+
+    total_categories = len(
+        set(
+            p.category
+            for p in products
         )
+    )
 
-    with col2:
+    st.subheader(
+        "📈 System Statistics"
+    )
 
-        st.metric(
-            "Users",
-            len(
-                storage.get_all_users()
-            )
-        )
+    col1, col2, col3, col4 = st.columns(4)
 
-# -----------------------------------
-# Products
-# -----------------------------------
+    col1.metric(
+        "📦 Products",
+        total_products
+    )
 
-elif menu == "Products":
+    col2.metric(
+        "👥 Users",
+        total_users
+    )
 
-    st.header("📦 Products")
+    col3.metric(
+        "📂 Categories",
+        total_categories
+    )
 
-    data = []
+    col4.metric(
+        "⭐ Avg Rating",
+        avg_rating
+    )
 
-    for p in storage.get_all_products():
+    st.divider()
 
-        data.append(
+    st.subheader(
+        "🔥 Trending Products"
+    )
+
+    top_products = sorted(
+        products,
+        key=lambda p: p.popularity,
+        reverse=True
+    )[:10]
+
+    trend_df = pd.DataFrame(
+        [
             {
-                "ID": p.product_id,
-                "Name": p.name,
-                "Category": p.category,
+                "Product": p.name,
+                "Popularity": p.popularity,
                 "Rating": p.rating,
-                "Price": p.price,
-                "Popularity": p.popularity
+                "Price": p.price
             }
-        )
+            for p in top_products
+        ]
+    )
 
     st.dataframe(
-        pd.DataFrame(data),
+        trend_df,
         use_container_width=True
     )
 
-# -----------------------------------
-# Users
-# -----------------------------------
+# --------------------------------------------------
+# PRODUCTS
+# --------------------------------------------------
+elif menu == "Products":
 
+    st.header(
+        "📦 Product Catalog"
+    )
+
+    products = (
+        storage.get_all_products()
+    )
+
+    cols = st.columns(4)
+
+    for index, product in enumerate(products):
+
+        with cols[index % 4]:
+
+            image_path = (
+                f"images/products/"
+                f"{product.product_id}.jpg"
+            )
+
+            if os.path.exists(
+                image_path
+            ):
+                st.image(
+                    image_path,
+                    use_container_width=True
+                )
+
+            st.markdown(
+                f"""
+                ### {product.name}
+
+                📂 {product.category}
+
+                ⭐ {product.rating}
+
+                💰 ₹{product.price}
+
+                🔥 {product.popularity}
+                """
+            )
+
+            st.divider()
+
+# --------------------------------------------------
+# USERS
+# --------------------------------------------------
 elif menu == "Users":
 
-    st.header("👤 Users")
+    st.header(
+        "👤 Users"
+    )
 
     data = []
 
-    for u in storage.get_all_users():
+    for user in storage.get_all_users():
 
         data.append(
             {
-                "User ID": u.user_id,
-                "Name": u.name,
+                "User ID": user.user_id,
+                "Name": user.name,
                 "Purchases": len(
-                    u.purchase_history
+                    user.purchase_history
                 ),
                 "Searches": len(
-                    u.search_history
+                    user.search_history
                 ),
                 "Cart Items": len(
-                    u.cart_items
+                    user.cart_items
                 )
             }
         )
@@ -163,28 +231,23 @@ elif menu == "Users":
         use_container_width=True
     )
 
-# -----------------------------------
-# Recommendations
-# -----------------------------------
-
+# --------------------------------------------------
+# RECOMMENDATIONS
+# --------------------------------------------------
 elif menu == "Recommendations":
 
     st.header(
         "🎯 Personalized Recommendations"
     )
 
-    users = {
-        user.user_id: user.name
-        for user in (
-            storage.get_all_users()
-        )
-    }
+    user_ids = [
+        u.user_id
+        for u in storage.get_all_users()
+    ]
 
     selected_user = st.selectbox(
         "Select User",
-        list(users.keys()),
-        format_func=lambda x:
-        f"{x} - {users[x]}"
+        user_ids
     )
 
     if st.button(
@@ -206,28 +269,40 @@ elif menu == "Recommendations":
 
         else:
 
-            for score, product in (
-                recommendations
-            ):
+            for item in recommendations:
 
-                st.success(
-                    f"{product.name}"
+                if len(item) == 3:
+
+                    score, product, reasons = item
+
+                else:
+
+                    score, product = item
+                    reasons = []
+
+                st.subheader(
+                    product.name
+                )
+
+                col1, col2, col3 = st.columns(3)
+
+                col1.metric(
+                    "⭐ Rating",
+                    product.rating
+                )
+
+                col2.metric(
+                    "🔥 Popularity",
+                    product.popularity
+                )
+
+                col3.metric(
+                    "🎯 Score",
+                    round(score, 1)
                 )
 
                 st.write(
-                    f"Score: {score}"
-                )
-
-                reasons = (
-                    recommendation_engine
-                    .explain_recommendation(
-                        selected_user,
-                        product
-                    )
-                )
-
-                st.write(
-                    "Reason:"
+                    "Recommendation Reasons"
                 )
 
                 for reason in reasons:
@@ -238,10 +313,9 @@ elif menu == "Recommendations":
 
                 st.divider()
 
-# -----------------------------------
-# Analytics
-# -----------------------------------
-
+# --------------------------------------------------
+# ANALYTICS
+# --------------------------------------------------
 elif menu == "Analytics":
 
     st.header(
@@ -253,70 +327,77 @@ elif menu == "Analytics":
         .category_distribution()
     )
 
-    st.subheader(
-        "Category Distribution"
-    )
+    if stats:
 
-    df = pd.DataFrame(
-        {
-            "Category":
-            list(stats.keys()),
-            "Count":
-            list(stats.values())
-        }
-    )
-
-    st.bar_chart(
-        df.set_index(
-            "Category"
+        df = pd.DataFrame(
+            {
+                "Category":
+                list(stats.keys()),
+                "Count":
+                list(stats.values())
+            }
         )
-    )
 
-    ratings = (
-        analytics_engine
-        .average_rating_by_category()
-    )
+        st.subheader(
+            "Category Distribution"
+        )
 
-    st.subheader(
-        "Average Rating By Category"
-    )
+        fig = px.pie(
+            df,
+            names="Category",
+            values="Count",
+            hole=0.4
+        )
 
-    rating_df = pd.DataFrame(
-        {
-            "Category":
-            list(ratings.keys()),
-            "Rating":
-            list(ratings.values())
-        }
-    )
+        st.plotly_chart(
+            fig,
+            use_container_width=True
+        )
 
-    st.dataframe(
-        rating_df,
-        use_container_width=True
-    )
+        st.subheader(
+            "Top Products"
+        )
 
-# -----------------------------------
-# Reports
-# -----------------------------------
+        top_products = sorted(
+            storage.get_all_products(),
+            key=lambda p: p.popularity,
+            reverse=True
+        )[:10]
 
+        top_df = pd.DataFrame(
+            [
+                {
+                    "Product": p.name,
+                    "Popularity": p.popularity,
+                    "Rating": p.rating,
+                    "Price": p.price
+                }
+                for p in top_products
+            ]
+        )
+
+        st.dataframe(
+            top_df,
+            use_container_width=True
+        )
+
+# --------------------------------------------------
+# REPORTS
+# --------------------------------------------------
 elif menu == "Reports":
 
     st.header(
-        "📄 Report Generation"
+        "📄 Reports"
     )
 
-    users = {
-        user.user_id: user.name
-        for user in (
-            storage.get_all_users()
-        )
-    }
+    user_ids = [
+        u.user_id
+        for u in storage.get_all_users()
+    ]
 
     selected_user = st.selectbox(
         "Select User",
-        list(users.keys()),
-        format_func=lambda x:
-        f"{x} - {users[x]}"
+        user_ids
     )
 
     if st.button(
@@ -342,9 +423,17 @@ elif menu == "Reports":
             )
         )
 
-        st.success(
-            f"Saved: {path}"
-        )
+        with open(
+            path,
+            "rb"
+        ) as file:
+
+            st.download_button(
+                label="⬇ Download Recommendation Report",
+                data=file,
+                file_name="recommendation_report.txt",
+                mime="text/plain"
+            )
 
     if st.button(
         "Generate Analytics Report"
@@ -362,6 +451,15 @@ elif menu == "Reports":
             )
         )
 
-        st.success(
-            f"Saved: {path}"
-        )
+        with open(
+            path,
+            "rb"
+        ) as file:
+
+            st.download_button(
+                label="⬇ Download Analytics Report",
+                data=file,
+                file_name="analytics_report.txt",
+                mime="text/plain"
+            )
+
