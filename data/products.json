@@ -1,0 +1,50 @@
+[
+    {
+        "id": 101,
+        "name": "Laptop",
+        "category": "Electronics",
+        "rating": 4.8,
+        "price": 60000,
+        "popularity": 95
+    },
+    {
+        "id": 102,
+        "name": "Gaming Mouse",
+        "category": "Electronics",
+        "rating": 4.6,
+        "price": 1500,
+        "popularity": 90
+    },
+    {
+        "id": 103,
+        "name": "Mechanical Keyboard",
+        "category": "Electronics",
+        "rating": 4.7,
+        "price": 3500,
+        "popularity": 85
+    },
+    {
+        "id": 104,
+        "name": "Laptop Bag",
+        "category": "Accessories",
+        "rating": 4.5,
+        "price": 1200,
+        "popularity": 80
+    },
+    {
+        "id": 105,
+        "name": "Monitor",
+        "category": "Electronics",
+        "rating": 4.4,
+        "price": 12000,
+        "popularity": 75
+    },
+    {
+        "id": 106,
+        "name": "Headphones",
+        "category": "Electronics",
+        "rating": 4.6,
+        "price": 2500,
+        "popularity": 88
+    }
+]

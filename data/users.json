@@ -1,0 +1,21 @@
+[
+    {
+        "id": 1,
+        "name": "Rahul",
+        "purchase_history": [101, 103],
+        "search_history": [
+            "Gaming Mouse",
+            "Laptop Bag"
+        ],
+        "cart_items": [102]
+    },
+    {
+        "id": 2,
+        "name": "Priya",
+        "purchase_history": [],
+        "search_history": [
+            "Headphones"
+        ],
+        "cart_items": [106]
+    }
+]
