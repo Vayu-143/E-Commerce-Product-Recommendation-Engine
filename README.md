@@ -424,7 +424,7 @@ Through this project I practiced:
 
 ### Vayunandan Mishra
 
-Electronis and communication Engineering Student
+Electronics and communication Engineering Student
 
 GitHub:
 https://github.com/Vayu-143
